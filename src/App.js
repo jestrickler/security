@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Grid, Nav, Navbar, NavItem, Row } from 'react-bootstrap';
-import { Redirect, Route } from 'react-router-dom';
-import { LinkContainer } from 'react-router-bootstrap';
+import { Redirect, Route, withRouter } from 'react-router-dom';
+import { IndexLinkContainer, LinkContainer } from 'react-router-bootstrap';
 import auth from './auth';
 import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
@@ -13,7 +13,7 @@ const PrivateRoute = ({ component: Component, ...rest }) => (
       <Component {...props}/>
     ) : (
       <Redirect to={{
-        pathname: '/login',
+        pathname: "/login",
         state: { from: props.location }
       }}/>
     )
@@ -24,6 +24,7 @@ class App extends Component {
 
   logoutHandler = () => {
     auth.logOut();
+    this.props.history.push("/");
   };
 
   render() {
@@ -39,9 +40,9 @@ class App extends Component {
             </Navbar.Header>
             <Navbar.Collapse>
               <Nav>
-                <LinkContainer to="/">
+                <IndexLinkContainer to="/">
                   <NavItem eventKey={1}>Home</NavItem>
-                </LinkContainer>
+                </IndexLinkContainer>
                 <LinkContainer to="/test">
                   <NavItem eventKey={2}>Test</NavItem>
                 </LinkContainer>
@@ -60,5 +61,5 @@ class App extends Component {
   }
 }
 
-export default App;
+export default withRouter(App);
 
