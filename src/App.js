@@ -1,20 +1,21 @@
-import React, { Component } from 'react';
-import { Grid, Nav, Navbar, NavItem, Row } from 'react-bootstrap';
-import { Redirect, Route, withRouter } from 'react-router-dom';
-import { IndexLinkContainer, LinkContainer } from 'react-router-bootstrap';
-import auth from './auth';
+import React, {Component} from 'react';
+import {Grid} from 'react-bootstrap';
+import {Redirect, Route, withRouter} from 'react-router-dom';
+import {connect} from "react-redux";
+import {logout} from "./actions/auth";
+import Header from './components/Header';
 import HomePage from './components/HomePage';
 import LoginPage from './components/LoginPage';
 import TestPage from './components/TestPage';
 
-const PrivateRoute = ({ component: Component, ...rest }) => (
+const SecuredRoute = ({component: Component, isAuthenticated, ...rest}) => (
   <Route {...rest} render={props => (
-    auth.loggedIn() ? (
+    isAuthenticated ? (
       <Component {...props}/>
     ) : (
       <Redirect to={{
         pathname: "/login",
-        state: { from: props.location }
+        state: {from: props.location}
       }}/>
     )
   )}/>
@@ -23,43 +24,35 @@ const PrivateRoute = ({ component: Component, ...rest }) => (
 class App extends Component {
 
   logoutHandler = () => {
-    auth.logOut();
     this.props.history.push("/");
+    this.props.logout();
   };
 
   render() {
+    let {isAuthenticated, user} = this.props;
     return (
       <Grid>
-        <Row>
-          <Navbar inverse collapseOnSelect>
-            <Navbar.Header>
-              <Navbar.Brand>
-                <a href="/">Security</a>
-              </Navbar.Brand>
-              <Navbar.Toggle />
-            </Navbar.Header>
-            <Navbar.Collapse>
-              <Nav>
-                <IndexLinkContainer to="/">
-                  <NavItem eventKey={1}>Home</NavItem>
-                </IndexLinkContainer>
-                <LinkContainer to="/test">
-                  <NavItem eventKey={2}>Test</NavItem>
-                </LinkContainer>
-             </Nav>
-              <Nav pullRight>
-                <NavItem eventKey={1} href="/" onClick={this.logoutHandler} >Log Out</NavItem>
-              </Nav>
-            </Navbar.Collapse>
-          </Navbar>
-        </Row>
+        <Header isAuthenticated={isAuthenticated} logout={this.logoutHandler} user={user}/>
         <Route exact path="/" component={HomePage}/>
         <Route path="/login" component={LoginPage}/>
-        <PrivateRoute path="/test" component={TestPage}/>
+        <SecuredRoute path="/test" component={TestPage} isAuthenticated={this.props.isAuthenticated}/>
       </Grid>
     );
   }
 }
 
-export default withRouter(App);
+App.propTypes = {
+  isAuthenticated: React.PropTypes.bool.isRequired,
+  logout: React.PropTypes.func.isRequired,
+  user: React.PropTypes.object
+};
+
+const mapStateToProps = (state) => {
+  return {
+    isAuthenticated: state.auth.isAuthenticated,
+    user: state.auth.user
+  }
+};
+
+export default withRouter(connect(mapStateToProps, {logout})(App));
 

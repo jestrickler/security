@@ -1,0 +1,11 @@
+.Header-username {
+  color: white;
+}
+
+.Header-link {
+  margin-left: 15px;
+}
+.Header-link:hover {
+  text-decoration:none;
+}
+

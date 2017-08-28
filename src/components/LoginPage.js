@@ -1,18 +1,13 @@
-import React, { Component } from 'react';
-import { Alert, Button, Col, Form, FormControl, FormGroup, Row, Well} from 'react-bootstrap';
-import {Redirect} from 'react-router-dom';
-import Auth from '../auth';
-import '../css/LoginPage.css';
+import React, {Component} from "react";
+import {Alert, Button, Col, Form, FormControl, FormGroup, Row, Well} from "react-bootstrap";
+import {Redirect} from "react-router-dom";
+import {connect} from "react-redux";
+import {login} from "../actions/auth";
+import "../css/LoginPage.css";
+
 
 class LoginPage extends Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      credentials: {username: '', password: ''},
-      error: '',
-      redirectToReferrer: false
-    }
-  }
+  state = {credentials: {username: '', password: ''}};
 
   changeHandler = (event) => {
     let {credentials} = this.state;
@@ -22,16 +17,15 @@ class LoginPage extends Component {
 
   submitHandler = (event) => {
     event.preventDefault();
-    Auth.logIn(this.state.credentials)
-      .then(() => {this.setState({ redirectToReferrer: true })})
-      .catch((error) => { this.setState({error: error}) });
+    this.props.login(this.state.credentials)
   };
 
   render() {
-    let {credentials, error, redirectToReferrer} = this.state;
-    const { from } = this.props.location.state || { from: { pathname: '/' } }
+    let {credentials} = this.state;
+    let {isAuthenticated, error} = this.props;
+    const {from} = this.props.location.state || {from: {pathname: '/'}}
 
-    if (redirectToReferrer) {
+    if (isAuthenticated) {
       return (
         <Redirect to={from}/>
       )
@@ -41,8 +35,8 @@ class LoginPage extends Component {
       <Row>
         <Col md={4} mdOffset={4}>
           <Well bsSize="large">
-            {error && <Alert bsStyle="danger">{error.message}</Alert>}
-            <h2 className="LoginPage-header">Please login</h2>
+            {error && <Alert bsStyle="danger">{error}</Alert>}
+            <h2 className="LoginPage-header">Please Sign In</h2>
             <Form onSubmit={this.submitHandler}>
               <FormGroup>
                 <FormControl bsSize="large" type='text' name='username' placeholder='Username'
@@ -51,7 +45,7 @@ class LoginPage extends Component {
                              value={credentials.password} onChange={this.changeHandler}/>
               </FormGroup>
               <FormGroup>
-                <Button className="LoginPage-button" bsStyle="primary" bsSize="large" type="submit">Login</Button>
+                <Button className="LoginPage-button" bsStyle="primary" bsSize="large" type="submit">Sign In</Button>
               </FormGroup>
             </Form>
           </Well>
@@ -61,6 +55,18 @@ class LoginPage extends Component {
   }
 }
 
-export default LoginPage;
+LoginPage.propTypes = {
+  login: React.PropTypes.func.isRequired,
+  isAuthenticated: React.PropTypes.bool.isRequired,
+  error: React.PropTypes.string
+};
+
+const mapStateToProps = (state) => {
+  return {
+    isAuthenticated: state.auth.isAuthenticated,
+    error: state.auth.error
+  }
+};
+export default connect(mapStateToProps, {login})(LoginPage);
 
 
